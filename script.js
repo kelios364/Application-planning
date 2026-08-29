@@ -10,6 +10,9 @@ let tasks = JSON.parse(localStorage.getItem("planningTasks")) || {
   "Dimanche": []
 };
 
+let currentTheme = localStorage.getItem("planningTheme") || "dark";
+let selectedIcon = "📝";
+
 // Éléments DOM
 const weekGrid = document.getElementById("weekGrid");
 const timetableView = document.getElementById("timetableView");
@@ -19,15 +22,46 @@ const btnList = document.getElementById("btnList");
 const btnGrid = document.getElementById("btnGrid");
 const fullscreenBtn = document.getElementById("fullscreenBtn");
 
+// Modales & Boutons Réglages
+const settingsBtn = document.getElementById("settingsBtn");
+const settingsModal = document.getElementById("settingsModal");
+const closeSettingsModal = document.getElementById("closeSettingsModal");
+const themeToggleBtn = document.getElementById("themeToggleBtn");
+const resetDataBtn = document.getElementById("resetDataBtn");
+
+// Modale Ajout Tâche
+const addTaskModal = document.getElementById("addTaskModal");
+const closeAddTaskModal = document.getElementById("closeAddTaskModal");
+const addTaskForm = document.getElementById("addTaskForm");
+const taskDayInput = document.getElementById("taskDayInput");
+const addTaskModalTitle = document.getElementById("addTaskModalTitle");
+const iconSelector = document.getElementById("iconSelector");
+
 // Initialisation
 document.addEventListener("DOMContentLoaded", () => {
+  applyTheme(currentTheme);
   renderListView();
   renderTimetable();
   setupEventListeners();
 });
 
+// Gestion des thèmes
+function applyTheme(theme) {
+  if (theme === "light") {
+    document.body.classList.remove("dark-theme");
+    document.body.classList.add("light-theme");
+    themeToggleBtn.textContent = "Passer au Mode Sombre";
+  } else {
+    document.body.classList.remove("light-theme");
+    document.body.classList.add("dark-theme");
+    themeToggleBtn.textContent = "Passer au Mode Clair";
+  }
+  localStorage.setItem("planningTheme", theme);
+}
+
 // Écouteurs d'événements principaux
 function setupEventListeners() {
+  // Navigation vues
   btnList.addEventListener("click", () => {
     btnList.classList.add("active");
     btnGrid.classList.remove("active");
@@ -43,6 +77,7 @@ function setupEventListeners() {
     renderTimetable();
   });
 
+  // Plein écran
   fullscreenBtn.addEventListener("click", () => {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen().catch(err => console.log(err));
@@ -50,14 +85,63 @@ function setupEventListeners() {
       document.exitFullscreen().catch(err => console.log(err));
     }
   });
+
+  // Réglages
+  settingsBtn.addEventListener("click", () => settingsModal.classList.remove("hidden"));
+  closeSettingsModal.addEventListener("click", () => settingsModal.classList.add("hidden"));
+
+  themeToggleBtn.addEventListener("click", () => {
+    currentTheme = currentTheme === "dark" ? "light" : "dark";
+    applyTheme(currentTheme);
+  });
+
+  resetDataBtn.addEventListener("click", () => {
+    if (confirm("Voulez-vous vraiment tout réinitialiser ? Toutes vos tâches seront supprimées.")) {
+      tasks = { "Lundi": [], "Mardi": [], "Mercredi": [], "Jeudi": [], "Vendredi": [], "Samedi": [], "Dimanche": [] };
+      saveTasks();
+      renderListView();
+      renderTimetable();
+      settingsModal.classList.add("hidden");
+    }
+  });
+
+  // Ajout Tâche
+  closeAddTaskModal.addEventListener("click", () => addTaskModal.classList.add("hidden"));
+
+  // Sélection icône
+  iconSelector.querySelectorAll(".icon-opt").forEach(btn => {
+    btn.addEventListener("click", () => {
+      iconSelector.querySelectorAll(".icon-opt").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      selectedIcon = btn.dataset.icon;
+    });
+  });
+
+  // Soumission Formulaire Tâche
+  addTaskForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const day = taskDayInput.value;
+    const text = document.getElementById("taskText").value.trim();
+    const startTime = document.getElementById("startTime").value || null;
+    const endTime = document.getElementById("endTime").value || null;
+    const duration = document.getElementById("taskDuration").value.trim() || null;
+
+    if (text !== "") {
+      addTask(day, text, selectedIcon, startTime, endTime, duration);
+      addTaskForm.reset();
+      // Remettre l'icône par défaut sur la première
+      iconSelector.querySelectorAll(".icon-opt").forEach(b => b.classList.remove("active"));
+      iconSelector.querySelector(".icon-opt").classList.add("active");
+      selectedIcon = "📝";
+      addTaskModal.classList.add("hidden");
+    }
+  });
 }
 
-// Sauvegarde dans le navigateur
 function saveTasks() {
   localStorage.setItem("planningTasks", JSON.stringify(tasks));
 }
 
-// Échappement HTML pour éviter les failles
 function escapeHtml(str) {
   return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
@@ -70,11 +154,24 @@ function renderListView() {
     const card = document.createElement("div");
     card.className = "day-card";
 
+    // En-tête de carte (Titre à gauche, bouton + à droite)
+    const cardHeader = document.createElement("div");
+    cardHeader.className = "day-header";
+
     const title = document.createElement("div");
     title.className = "day-title";
     title.textContent = day;
-    card.appendChild(title);
 
+    const addBtn = document.createElement("button");
+    addBtn.className = "add-btn-icon";
+    addBtn.textContent = "+";
+    addBtn.onclick = () => openAddTaskModal(day);
+
+    cardHeader.appendChild(title);
+    cardHeader.appendChild(addBtn);
+    card.appendChild(cardHeader);
+
+    // Liste des tâches
     const taskList = document.createElement("ul");
     taskList.className = "task-list";
 
@@ -82,10 +179,29 @@ function renderListView() {
       const li = document.createElement("li");
       li.className = `task-item ${task.completed ? 'completed' : ''}`;
       
-      const timeTag = task.time ? `<small>🕒 ${task.time}</small> ` : '';
+      let metaDetails = [];
+      if (task.startTime || task.endTime) {
+        let timeStr = "🕒 ";
+        if (task.startTime) timeStr += task.startTime;
+        if (task.startTime && task.endTime) timeStr += " - ";
+        if (task.endTime) timeStr += task.endTime;
+        metaDetails.push(timeStr);
+      }
+      if (task.duration) {
+        metaDetails.push(`⏳ ${task.duration}`);
+      }
+
+      const metaHTML = metaDetails.length > 0 ? `<div class="task-meta">${metaDetails.join(' | ')}</div>` : '';
+
       li.innerHTML = `
-        <span>${timeTag}${escapeHtml(task.text)}</span>
-        <div>
+        <div class="task-main">
+          <span class="task-icon">${task.icon || '📝'}</span>
+          <div class="task-details">
+            <span class="task-text-content">${escapeHtml(task.text)}</span>
+            ${metaHTML}
+          </div>
+        </div>
+        <div class="task-actions">
           <button onclick="toggleTask('${day}', ${index})">✓</button>
           <button onclick="deleteTask('${day}', ${index})">🗑</button>
         </div>
@@ -94,37 +210,20 @@ function renderListView() {
     });
 
     card.appendChild(taskList);
-
-    // Formulaire d'ajout
-    const form = document.createElement("form");
-    form.className = "add-task-form";
-    form.innerHTML = `
-      <input type="text" placeholder="Nouvelle tâche..." required>
-      <input type="time">
-      <button type="submit">+</button>
-    `;
-
-    form.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const textInput = form.querySelector('input[type="text"]');
-      const timeInput = form.querySelector('input[type="time"]');
-
-      if (textInput.value.trim() !== "") {
-        addTask(day, textInput.value.trim(), timeInput.value);
-        textInput.value = "";
-        timeInput.value = "";
-      }
-    });
-
-    card.appendChild(form);
     weekGrid.appendChild(card);
   });
 }
 
+function openAddTaskModal(day) {
+  taskDayInput.value = day;
+  addTaskModalTitle.textContent = `Ajouter une tâche (${day})`;
+  addTaskModal.classList.remove("hidden");
+}
+
 // Actions sur les tâches
-function addTask(day, text, time) {
+function addTask(day, text, icon, startTime, endTime, duration) {
   if (!tasks[day]) tasks[day] = [];
-  tasks[day].push({ text, time: time || null, completed: false });
+  tasks[day].push({ text, icon, startTime, endTime, duration, completed: false });
   saveTasks();
   renderListView();
   renderTimetable();
@@ -146,7 +245,6 @@ function deleteTask(day, index) {
 
 // --- RENDU VUE GRILLE HORAIRE ---
 function renderTimetable() {
-  // 1. En-tête (Jours de la semaine)
   let headerHTML = `<tr><th>Heure</th>`;
   days.forEach(day => {
     headerHTML += `<th>${day.slice(0, 3)}.</th>`;
@@ -154,36 +252,37 @@ function renderTimetable() {
   headerHTML += `</tr>`;
   timetableHeader.innerHTML = headerHTML;
 
-  // 2. Corps du tableau
   timetableBody.innerHTML = "";
 
-  // Ligne "Toute la journée"
+  // Ligne "Journée / Sans horaire"
   let allDayHTML = `<tr><td>Journée</td>`;
   days.forEach(day => {
-    const noTimeTasks = (tasks[day] || []).filter(t => !t.time);
+    const noTimeTasks = (tasks[day] || []).filter(t => !t.startTime);
     let cellContent = noTimeTasks.map(t => 
-      `<div class="grid-task ${t.completed ? 'completed' : ''}">${escapeHtml(t.text)}</div>`
+      `<div class="grid-task ${t.completed ? 'completed' : ''}">
+        ${t.icon || '📝'} ${escapeHtml(t.text)}
+      </div>`
     ).join("");
     allDayHTML += `<td>${cellContent}</td>`;
   });
   allDayHTML += `</tr>`;
   timetableBody.innerHTML += allDayHTML;
 
-  // Lignes par heure (06:00 à 23:00)
+  // Lignes par heure (06:00 à 23:00) selon l'heure de début
   for (let hour = 6; hour <= 23; hour++) {
     const hourStr = hour.toString().padStart(2, '0') + ":00";
     let rowHTML = `<tr><td>${hourStr}</td>`;
 
     days.forEach(day => {
       const matchingTasks = (tasks[day] || []).filter(t => {
-        if (!t.time) return false;
-        const taskHour = parseInt(t.time.split(":")[0], 10);
+        if (!t.startTime) return false;
+        const taskHour = parseInt(t.startTime.split(":")[0], 10);
         return taskHour === hour;
       });
 
       let cellContent = matchingTasks.map(t => 
         `<div class="grid-task ${t.completed ? 'completed' : ''}">
-          ${escapeHtml(t.text)}
+          ${t.icon || '📝'} ${escapeHtml(t.text)}
         </div>`
       ).join("");
 

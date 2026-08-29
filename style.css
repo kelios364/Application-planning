@@ -11,6 +11,27 @@
   --button-active-bg: #ffffff;
   --button-active-text: #000000;
   --button-inactive-bg: #1c1c1e;
+  --input-bg: #121212;
+  --danger-color: #ff453a;
+  --modal-bg: #1c1c1e;
+}
+
+body.light-theme {
+  --bg-color: #f2f2f7;
+  --card-bg: #ffffff;
+  --header-bg: #e5e5ea;
+  --text-color: #000000;
+  --subtext-color: #6c6c70;
+  --border-color: #d1d1d6;
+  --cell-border: #e5e5ea;
+  --accent-color: #007aff;
+  --completed-color: #34c759;
+  --button-active-bg: #007aff;
+  --button-active-text: #ffffff;
+  --button-inactive-bg: #e5e5ea;
+  --input-bg: #f2f2f7;
+  --danger-color: #ff3b30;
+  --modal-bg: #ffffff;
 }
 
 * {
@@ -26,6 +47,7 @@ body {
   padding: 12px;
   display: flex;
   justify-content: center;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .app-container {
@@ -64,18 +86,19 @@ header {
   color: var(--text-color);
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 1.1rem;
+  touch-action: manipulation;
 }
 
 .view-toggle {
   display: flex;
-  background: #1c1c1e;
+  background: var(--button-inactive-bg);
   padding: 3px;
   border-radius: 9px;
   gap: 4px;
@@ -116,61 +139,246 @@ header {
   border: 1px solid var(--border-color);
 }
 
+.day-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
 .day-title {
   font-weight: 700;
-  font-size: 1rem;
-  margin-bottom: 8px;
+  font-size: 1.05rem;
   color: var(--accent-color);
+}
+
+.add-btn-icon {
+  background: var(--accent-color);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
 }
 
 .task-list {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .task-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #242426;
-  padding: 8px 10px;
-  border-radius: 6px;
+  background: var(--input-bg);
+  padding: 10px;
+  border-radius: 8px;
   font-size: 0.9rem;
+  border: 1px solid var(--border-color);
 }
 
 .task-item.completed {
   opacity: 0.5;
+}
+
+.task-item.completed .task-text-content {
   text-decoration: line-through;
 }
 
-.add-task-form {
+.task-main {
   display: flex;
-  gap: 6px;
-  margin-top: 8px;
-}
-
-.add-task-form input {
-  background: #121212;
-  border: 1px solid var(--border-color);
-  color: #fff;
-  padding: 6px 10px;
-  border-radius: 6px;
-  font-size: 0.85rem;
-}
-
-.add-task-form input[type="text"] {
+  align-items: center;
+  gap: 8px;
   flex: 1;
 }
 
-.add-task-form button {
+.task-icon {
+  font-size: 1.1rem;
+}
+
+.task-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.task-meta {
+  font-size: 0.75rem;
+  color: var(--subtext-color);
+  margin-top: 2px;
+}
+
+.task-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.task-actions button {
+  background: var(--button-inactive-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* Modales */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.modal-content {
+  background: var(--modal-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 420px;
+  padding: 20px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.modal-header h2 {
+  font-size: 1.1rem;
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  color: var(--subtext-color);
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-size: 0.8rem;
+  color: var(--subtext-color);
+  font-weight: 600;
+}
+
+.form-group input {
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.form-row {
+  display: flex;
+  gap: 10px;
+}
+
+.form-row .form-group {
+  flex: 1;
+}
+
+.icon-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.icon-opt {
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  width: 36px;
+  height: 36px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-opt.active {
+  border-color: var(--accent-color);
+  background: rgba(10, 132, 255, 0.2);
+}
+
+.modal-actions {
+  margin-top: 8px;
+}
+
+.primary-btn, .action-btn, .danger-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.primary-btn {
   background: var(--accent-color);
   color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 6px;
-  cursor: pointer;
+}
+
+.action-btn {
+  background: var(--button-inactive-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+.danger-btn {
+  background: var(--danger-color);
+  color: white;
+}
+
+.setting-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+
+.modal-divider {
+  border: 0;
+  height: 1px;
+  background: var(--border-color);
+  margin: 4px 0;
 }
 
 /* Vue Grille Horaire */
@@ -216,9 +424,9 @@ header {
 }
 
 .grid-task {
-  background: #2a2a2e;
+  background: var(--input-bg);
   border-left: 3px solid var(--accent-color);
-  padding: 3px 5px;
+  padding: 4px;
   border-radius: 3px;
   margin-bottom: 3px;
   text-align: left;

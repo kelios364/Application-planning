@@ -22,16 +22,87 @@
       </div>
     </header>
 
-    <!-- Vue Liste -->
     <main class="week-grid" id="weekGrid"></main>
 
-    <!-- Vue Grille / Emploi du temps -->
     <main class="timetable-wrapper hidden" id="timetableView">
       <table class="timetable">
         <thead id="timetableHeader"></thead>
         <tbody id="timetableBody"></tbody>
       </table>
     </main>
+  </div>
+
+  <div id="settingsModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Réglages</h2>
+        <button class="close-btn" id="closeSettingsModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="setting-item">
+          <span>Thème de l'application</span>
+          <button id="themeToggleBtn" class="action-btn">Passer au Mode Clair</button>
+        </div>
+        <hr class="modal-divider">
+        <div class="setting-item">
+          <span>Toutes les données</span>
+          <button id="resetDataBtn" class="danger-btn">Réinitialiser tout</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="addTaskModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="addTaskModalTitle">Ajouter une tâche</h2>
+        <button class="close-btn" id="closeAddTaskModal">&times;</button>
+      </div>
+      <form id="addTaskForm" class="modal-body">
+        <input type="hidden" id="taskDayInput">
+        
+        <div class="form-group">
+          <label for="taskText">Nom de la tâche *</label>
+          <input type="text" id="taskText" placeholder="Ex: Devoirs, Sport, Gaming..." required>
+        </div>
+
+        <div class="form-group">
+          <label>Icône</label>
+          <div class="icon-selector" id="iconSelector">
+            <button type="button" class="icon-opt active" data-icon="📝">📝</button>
+            <button type="button" class="icon-opt" data-icon="🏫">🏫</button>
+            <button type="button" class="icon-opt" data-icon="🎮">🎮</button>
+            <button type="button" class="icon-opt" data-icon="🏋️‍♂️">🏋️‍♂️</button>
+            <button type="button" class="icon-opt" data-icon="🏎️">🏎️</button>
+            <button type="button" class="icon-opt" data-icon="💻">💻</button>
+            <button type="button" class="icon-opt" data-icon="🚗">🚗</button>
+            <button type="button" class="icon-opt" data-icon="📚">📚</button>
+            <button type="button" class="icon-opt" data-icon="🎨">🎨</button>
+            <button type="button" class="icon-opt" data-icon="📌">📌</button>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="startTime">Début (optionnel)</label>
+            <input type="time" id="startTime">
+          </div>
+          <div class="form-group">
+            <label for="endTime">Fin (optionnel)</label>
+            <input type="time" id="endTime">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="taskDuration">Durée (optionnel)</label>
+          <input type="text" id="taskDuration" placeholder="Ex: 1h30, 45 min">
+        </div>
+
+        <div class="modal-actions">
+          <button type="submit" class="primary-btn">Ajouter la tâche</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <script src="script.js"></script>
