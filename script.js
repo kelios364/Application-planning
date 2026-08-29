@@ -124,10 +124,9 @@ function setupEventListeners() {
     const text = document.getElementById("taskText").value.trim();
     const startTime = document.getElementById("startTime").value || null;
     const endTime = document.getElementById("endTime").value || null;
-    const duration = document.getElementById("taskDuration").value.trim() || null;
 
     if (text !== "") {
-      addTask(day, text, selectedIcon, startTime, endTime, duration);
+      addTask(day, text, selectedIcon, startTime, endTime);
       addTaskForm.reset();
       // Remettre l'icône par défaut sur la première
       iconSelector.querySelectorAll(".icon-opt").forEach(b => b.classList.remove("active"));
@@ -187,9 +186,6 @@ function renderListView() {
         if (task.endTime) timeStr += task.endTime;
         metaDetails.push(timeStr);
       }
-      if (task.duration) {
-        metaDetails.push(`⏳ ${task.duration}`);
-      }
 
       const metaHTML = metaDetails.length > 0 ? `<div class="task-meta">${metaDetails.join(' | ')}</div>` : '';
 
@@ -221,9 +217,9 @@ function openAddTaskModal(day) {
 }
 
 // Actions sur les tâches
-function addTask(day, text, icon, startTime, endTime, duration) {
+function addTask(day, text, icon, startTime, endTime) {
   if (!tasks[day]) tasks[day] = [];
-  tasks[day].push({ text, icon, startTime, endTime, duration, completed: false });
+  tasks[day].push({ text, icon, startTime, endTime, completed: false });
   saveTasks();
   renderListView();
   renderTimetable();
@@ -243,7 +239,7 @@ function deleteTask(day, index) {
   renderTimetable();
 }
 
-// --- RENDU VUE GRILLE HORAIRE ---
+// --- RENDU VUE GRILLE HORAIRE (00:00 - 23:00 avec fusion de plages) ---
 function renderTimetable() {
   let headerHTML = `<tr><th>Heure</th>`;
   days.forEach(day => {
@@ -254,7 +250,7 @@ function renderTimetable() {
 
   timetableBody.innerHTML = "";
 
-  // Ligne "Journée / Sans horaire"
+  // 1. Ligne "Toute la journée" (sans heure de début)
   let allDayHTML = `<tr><td>Journée</td>`;
   days.forEach(day => {
     const noTimeTasks = (tasks[day] || []).filter(t => !t.startTime);
@@ -268,25 +264,66 @@ function renderTimetable() {
   allDayHTML += `</tr>`;
   timetableBody.innerHTML += allDayHTML;
 
-  // Lignes par heure (06:00 à 23:00) selon l'heure de début
-  for (let hour = 6; hour <= 23; hour++) {
+  // 2. Grille horaire 00:00 - 23:00
+  // Suivi des cellules recouvertes par rowspan pour chaque jour
+  const skipSlots = {};
+  days.forEach(day => { skipSlots[day] = {}; });
+
+  for (let hour = 0; hour <= 23; hour++) {
     const hourStr = hour.toString().padStart(2, '0') + ":00";
     let rowHTML = `<tr><td>${hourStr}</td>`;
 
     days.forEach(day => {
-      const matchingTasks = (tasks[day] || []).filter(t => {
+      // Si la case de cette heure est déjà fusionnée par une tâche supérieure
+      if (skipSlots[day][hour]) {
+        return;
+      }
+
+      // Tâches commençant exactement à cette heure
+      const startingTasks = (tasks[day] || []).filter(t => {
         if (!t.startTime) return false;
-        const taskHour = parseInt(t.startTime.split(":")[0], 10);
-        return taskHour === hour;
+        const taskStartHour = parseInt(t.startTime.split(":")[0], 10);
+        return taskStartHour === hour;
       });
 
-      let cellContent = matchingTasks.map(t => 
-        `<div class="grid-task ${t.completed ? 'completed' : ''}">
-          ${t.icon || '📝'} ${escapeHtml(t.text)}
-        </div>`
-      ).join("");
+      if (startingTasks.length > 0) {
+        // Pour gérer au mieux l'affichage, on prend l'étendue max parmi les tâches démarrant à cette heure
+        let maxSpan = 1;
+        let contentHTML = "";
 
-      rowHTML += `<td>${cellContent}</td>`;
+        startingTasks.forEach(t => {
+          let span = 1;
+          if (t.endTime) {
+            const endHour = parseInt(t.endTime.split(":")[0], 10);
+            const endMin = parseInt(t.endTime.split(":")[1] || "0", 10);
+            // Si l'heure de fin a des minutes > 0 (ex: 17:30), on couvre jusqu'à l'heure suivante inclus
+            let targetEnd = endMin > 0 ? endHour + 1 : endHour;
+            if (targetEnd > hour) {
+              span = Math.min(targetEnd - hour, 24 - hour);
+            }
+          }
+          if (span > maxSpan) maxSpan = span;
+
+          let rangeStr = t.startTime + (t.endTime ? ` - ${t.endTime}` : '');
+          contentHTML += `
+            <div class="grid-task ${t.completed ? 'completed' : ''}">
+              <span>${t.icon || '📝'} ${escapeHtml(t.text)}</span>
+              <span class="grid-task-time">${rangeStr}</span>
+            </div>
+          `;
+        });
+
+        // Marquer les heures suivantes comme fusionnées
+        for (let s = 1; s < maxSpan; s++) {
+          if (hour + s <= 23) {
+            skipSlots[day][hour + s] = true;
+          }
+        }
+
+        rowHTML += `<td rowspan="${maxSpan}">${contentHTML}</td>`;
+      } else {
+        rowHTML += `<td></td>`;
+      }
     });
 
     rowHTML += `</tr>`;
