@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Planning Semaine</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+    <h1>Planning Semaine</h1>
+    <div class="view-toggle">
+      <button id="btnList" class="toggle-btn active">Vue Liste</button>
+      <button id="btnGrid" class="toggle-btn">Vue Grille</button>
+    </div>
+  </header>
+
+  <!-- Vue Liste (par défaut) -->
+  <main class="week-grid" id="weekGrid"></main>
+
+  <!-- Vue Grille Horaire -->
+  <main class="timetable-view hidden" id="timetableView">
+    <div class="timetable-header" id="timetableHeader">
+      <div class="time-col-header">Heure</div>
+      <!-- Les jours s'affichent ici -->
+    </div>
+    <div class="timetable-body" id="timetableBody">
+      <!-- Les créneaux horaires s'affichent ici -->
+    </div>
+  </main>
+
+  <!-- Modal / Formulaire -->
+  <div class="modal" id="taskModal">
+    <div class="modal-content">
+      <h2>Nouvelle tâche</h2>
+      <form id="taskForm">
+        <input type="hidden" id="selectedDay">
+        
+        <label for="taskText">Tâche :</label>
+        <input type="text" id="taskText" required placeholder="Ex: Faire du sport">
+
+        <label>Icône :</label>
+        <div class="icon-selector" id="iconSelector">
+          <button type="button" class="icon-btn active" data-icon="📌">📌</button>
+          <button type="button" class="icon-btn" data-icon="🏃">🏃</button>
+          <button type="button" class="icon-btn" data-icon="💼">💼</button>
+          <button type="button" class="icon-btn" data-icon="📚">📚</button>
+          <button type="button" class="icon-btn" data-icon="🛒">🛒</button>
+          <button type="button" class="icon-btn" data-icon="🧹">🧹</button>
+          <button type="button" class="icon-btn" data-icon="🍳">🍳</button>
+          <button type="button" class="icon-btn" data-icon="🎮">🎮</button>
+        </div>
+
+        <label for="startTime">Heure de début (optionnel) :</label>
+        <input type="time" id="startTime">
+
+        <label for="duration">Durée en minutes (optionnel) :</label>
+        <input type="number" id="duration" min="5" step="5" placeholder="Ex: 45">
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-cancel" id="cancelBtn">Annuler</button>
+          <button type="submit" class="btn btn-save">Ajouter</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
