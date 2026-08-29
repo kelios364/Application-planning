@@ -137,7 +137,6 @@ function escapeHtml(str) {
   return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-// Convertit une heure "HH:MM" en minutes depuis le début de la journée
 function timeToMinutes(timeStr) {
   if (!timeStr) return 0;
   const parts = timeStr.split(":");
@@ -235,11 +234,11 @@ function deleteTask(day, index) {
   renderTimetable();
 }
 
-// --- RENDU VUE GRILLE CSS GRID (Chevauchement & Tri par Durée) ---
+// --- RENDU VUE GRILLE CSS GRID ---
 function renderTimetable() {
   gridContainer.innerHTML = "";
 
-  // 1. En-tête (Heure + Jours)
+  // 1. En-têtes
   const headerTime = document.createElement("div");
   headerTime.className = "grid-header";
   headerTime.textContent = "Heure";
@@ -252,29 +251,20 @@ function renderTimetable() {
     gridContainer.appendChild(headerDay);
   });
 
-  // 2. Colonne d'heures (Journée + 00:00 à 23:00)
-  const timeCol = document.createElement("div");
-  timeCol.style.display = "contents";
-
-  const slotAllDay = document.createElement("div");
-  slotAllDay.className = "grid-time-slot";
-  slotAllDay.textContent = "Journée";
-  timeCol.appendChild(slotAllDay);
-
-  for (let h = 0; h <= 23; h++) {
+  // 2. Colonne d'heures (00:00 à 23:00)
+  const timeLabels = ["Journée", ...Array.from({ length: 24 }, (_, i) => `${i.toString().padStart(2, '0')}:00`)];
+  timeLabels.forEach(label => {
     const slot = document.createElement("div");
     slot.className = "grid-time-slot";
-    slot.textContent = h.toString().padStart(2, '0') + ":00";
-    timeCol.appendChild(slot);
-  }
-  gridContainer.appendChild(timeCol);
+    slot.textContent = label;
+    gridContainer.appendChild(slot);
+  });
 
-  // 3. Colonnes par jour
+  // 3. Colonnes des jours
   days.forEach(day => {
     const dayCol = document.createElement("div");
     dayCol.className = "grid-day-col";
 
-    // Fond des cases
     for (let i = 0; i < 25; i++) {
       const cellBg = document.createElement("div");
       cellBg.className = "grid-cell-bg";
@@ -283,14 +273,14 @@ function renderTimetable() {
 
     const dayTasks = tasks[day] || [];
     
-    // Tâches "Journée entier" (sans heure de début)
+    // Tâches "Journée entier"
     const noTimeTasks = dayTasks.filter(t => !t.startTime);
     noTimeTasks.forEach((t, idx) => {
       const taskCard = document.createElement("div");
       taskCard.className = `grid-task-card ${t.completed ? 'completed' : ''}`;
       taskCard.style.top = `2px`;
       taskCard.style.height = `40px`;
-      taskCard.style.left = `${(idx * 20)}%`;
+      taskCard.style.left = `${idx * 20}%`;
       taskCard.style.width = `calc(100% - ${idx * 20}px)`;
       taskCard.innerHTML = `<span>${t.icon || '📝'} ${escapeHtml(t.text)}</span>`;
       dayCol.appendChild(taskCard);
@@ -302,45 +292,34 @@ function renderTimetable() {
       .map(t => {
         const startMin = timeToMinutes(t.startTime);
         let endMin = t.endTime ? timeToMinutes(t.endTime) : startMin + 60;
-        if (endMin <= startMin) endMin = startMin + 60; // minimum 1h d'affichage
+        if (endMin <= startMin) endMin = startMin + 60;
         const duration = endMin - startMin;
         return { ...t, startMin, endMin, duration };
       });
 
-    // TRI CRUCIAL : Tri par durée décroissante (la plus longue en premier = plus à gauche)
+    // Tri : Tâche la plus longue en premier (affichée le plus à gauche)
     timedTasks.sort((a, b) => b.duration - a.duration || a.startMin - b.startMin);
 
-    // Calcul des chevauchements et positions d'affichage
+    // Calcul des chevauchements
     const placedTasks = [];
-
     timedTasks.forEach(task => {
-      // Trouver les tâches déjà placées qui se chevauchent avec la tâche actuelle
-      const overlapping = placedTasks.filter(p => 
-        (task.startMin < p.endMin && task.endMin > p.startMin)
-      );
-
-      // Calculer la colonne disponible (colIndex)
+      const overlapping = placedTasks.filter(p => (task.startMin < p.endMin && task.endMin > p.startMin));
       let colIndex = 0;
       const occupiedCols = overlapping.map(o => o.colIndex);
       while (occupiedCols.includes(colIndex)) {
         colIndex++;
       }
-
       task.colIndex = colIndex;
       placedTasks.push(task);
     });
 
-    // Calcul du nombre de colonnes simultanées maximales pour ajuster la largeur
+    // Placement final des cartes
     placedTasks.forEach(task => {
-      const overlapping = placedTasks.filter(p => 
-        (task.startMin < p.endMin && task.endMin > p.startMin)
-      );
+      const overlapping = placedTasks.filter(p => (task.startMin < p.endMin && task.endMin > p.startMin));
       const totalCols = Math.max(...overlapping.map(o => o.colIndex)) + 1;
 
-      // Positionnement en pixels (44px par tranche d'heure + décalage initial de 44px pour la case "Journée")
       const topPx = 44 + (task.startMin / 60) * 44;
       const heightPx = (task.duration / 60) * 44;
-      
       const widthPercent = 100 / totalCols;
       const leftPercent = task.colIndex * widthPercent;
 
@@ -351,8 +330,7 @@ function renderTimetable() {
       taskCard.style.left = `${leftPercent}%`;
       taskCard.style.width = `${widthPercent}%`;
 
-      let timeStr = task.startTime + (task.endTime ? ` - ${task.endTime}` : '');
-
+      const timeStr = `${task.startTime}${task.endTime ? ` - ${task.endTime}` : ''}`;
       taskCard.innerHTML = `
         <span>${task.icon || '📝'} ${escapeHtml(task.text)}</span>
         <span class="grid-task-time">${timeStr}</span>

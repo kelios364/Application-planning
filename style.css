@@ -381,7 +381,7 @@ header {
   margin: 4px 0;
 }
 
-/* Vue Grille CSS Grid */
+/* Vue Grille CSS Grid Corrigée */
 .timetable-wrapper {
   width: 100%;
   max-height: 80vh;
@@ -395,6 +395,7 @@ header {
 .grid-container {
   display: grid;
   grid-template-columns: 65px repeat(7, minmax(110px, 1fr));
+  grid-template-rows: 35px repeat(25, 44px);
   min-width: 835px;
   position: relative;
 }
@@ -413,28 +414,23 @@ header {
   z-index: 10;
 }
 
-.grid-header:first-child {
-  z-index: 11;
-  left: 0;
-}
-
 .grid-time-slot {
   background: var(--header-bg);
   color: var(--subtext-color);
   font-weight: 600;
   font-size: 0.75rem;
   text-align: center;
-  padding: 6px 2px;
+  line-height: 44px;
   border-bottom: 1px solid var(--cell-border);
   border-right: 1px solid var(--border-color);
   height: 44px;
   box-sizing: border-box;
+  grid-column: 1;
 }
 
 .grid-day-col {
   position: relative;
-  display: grid;
-  grid-template-rows: repeat(25, 44px); /* 1 slot "Journée" + 24 slots horaires */
+  grid-row: 2 / span 25;
   border-right: 1px solid var(--cell-border);
 }
 
