@@ -1,3 +1,29 @@
+:root {
+  --bg-color: #000000;
+  --text-color: #ffffff;
+  --border-color: #ffffff;
+  --subtext-color: #aaaaaa;
+  --card-bg: #000000;
+  --header-bg: #111111;
+  --item-border: #444444;
+  --cell-border: #222222;
+  --accent-btn-bg: #ffffff;
+  --accent-btn-text: #000000;
+}
+
+body.light-theme {
+  --bg-color: #ffffff;
+  --text-color: #000000;
+  --border-color: #000000;
+  --subtext-color: #555555;
+  --card-bg: #ffffff;
+  --header-bg: #f0f0f0;
+  --item-border: #cccccc;
+  --cell-border: #e0e0e0;
+  --accent-btn-bg: #000000;
+  --accent-btn-text: #ffffff;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -6,26 +32,45 @@
 }
 
 body {
-  background-color: #000000;
-  color: #ffffff;
+  background-color: var(--bg-color);
+  color: var(--text-color);
   padding: 15px;
+  transition: background-color 0.2s, color 0.2s;
 }
 
 header {
-  text-align: center;
   padding-bottom: 15px;
-  border-bottom: 2px solid #ffffff;
+  border-bottom: 2px solid var(--border-color);
   margin-bottom: 15px;
 }
 
-h1 {
-  font-size: 1.5rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 10px;
 }
 
-/* Boutons de bascule de vue */
+h1 {
+  font-size: 1.3rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.icon-head-btn {
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  border-radius: 4px;
+  width: 36px;
+  height: 36px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .view-toggle {
   display: flex;
   justify-content: center;
@@ -33,9 +78,9 @@ h1 {
 }
 
 .toggle-btn {
-  background: #000000;
-  color: #ffffff;
-  border: 1px solid #ffffff;
+  background: var(--bg-color);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
   padding: 6px 14px;
   border-radius: 4px;
   cursor: pointer;
@@ -43,8 +88,8 @@ h1 {
 }
 
 .toggle-btn.active {
-  background-color: #ffffff;
-  color: #000000;
+  background-color: var(--accent-btn-bg);
+  color: var(--accent-btn-text);
   font-weight: bold;
 }
 
@@ -60,17 +105,17 @@ h1 {
 }
 
 .day-card {
-  border: 1px solid #ffffff;
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   padding: 10px;
-  background-color: #000000;
+  background-color: var(--card-bg);
 }
 
 .day-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px dashed #ffffff;
+  border-bottom: 1px dashed var(--border-color);
   padding-bottom: 8px;
   margin-bottom: 10px;
 }
@@ -81,18 +126,13 @@ h1 {
 }
 
 .add-btn {
-  background: #000000;
-  color: #ffffff;
-  border: 1px solid #ffffff;
+  background: var(--bg-color);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
   padding: 4px 10px;
   border-radius: 4px;
   cursor: pointer;
   font-size: 1rem;
-}
-
-.add-btn:active {
-  background-color: #ffffff;
-  color: #000000;
 }
 
 .task-list {
@@ -105,7 +145,7 @@ h1 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border: 1px solid #444444;
+  border: 1px solid var(--item-border);
   padding: 8px;
   border-radius: 4px;
 }
@@ -128,7 +168,7 @@ h1 {
 .task-checkbox {
   width: 20px;
   height: 20px;
-  accent-color: #ffffff;
+  accent-color: var(--text-color);
   cursor: pointer;
 }
 
@@ -147,76 +187,63 @@ h1 {
 
 .task-meta {
   font-size: 0.75rem;
-  color: #aaaaaa;
+  color: var(--subtext-color);
 }
 
 .delete-btn {
   background: none;
   border: none;
-  color: #ffffff;
+  color: var(--text-color);
   font-size: 1.2rem;
   cursor: pointer;
   padding: 0 5px;
 }
 
-/* Vue Grille Horaire */
-.timetable-view {
+/* Vue Grille Horaire Corrigée (Structure Table HTML) */
+.timetable-wrapper {
+  width: 100%;
   overflow-x: auto;
-  border: 1px solid #ffffff;
+  border: 1px solid var(--border-color);
   border-radius: 6px;
 }
 
-.timetable-header {
-  display: grid;
-  grid-template-columns: 50px repeat(7, minmax(80px, 1fr));
-  background: #111111;
-  border-bottom: 1px solid #ffffff;
+.timetable {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+}
+
+.timetable th, .timetable td {
+  border: 1px solid var(--cell-border);
+  padding: 6px 4px;
+  text-align: center;
+  font-size: 0.75rem;
+  vertical-align: top;
+}
+
+.timetable th {
+  background: var(--header-bg);
+  font-weight: bold;
   position: sticky;
   top: 0;
   z-index: 2;
+  border-bottom: 1px solid var(--border-color);
 }
 
-.time-col-header, .day-col-header {
-  padding: 8px 4px;
-  text-align: center;
-  font-weight: bold;
-  font-size: 0.8rem;
-  border-right: 1px solid #333333;
-}
-
-.timetable-body {
-  display: flex;
-  flex-direction: column;
-}
-
-.time-row {
-  display: grid;
-  grid-template-columns: 50px repeat(7, minmax(80px, 1fr));
-  border-bottom: 1px solid #222222;
-  min-height: 45px;
-}
-
-.time-label {
-  padding: 4px;
-  font-size: 0.7rem;
-  color: #aaaaaa;
-  text-align: center;
-  border-right: 1px solid #333333;
-}
-
-.time-cell {
-  border-right: 1px solid #222222;
-  padding: 2px;
-  font-size: 0.75rem;
+.timetable th:first-child, .timetable td:first-child {
+  width: 60px;
+  min-width: 60px;
+  color: var(--subtext-color);
 }
 
 .grid-task {
-  border: 1px solid #ffffff;
-  background: #111111;
-  padding: 2px 4px;
+  border: 1px solid var(--border-color);
+  background: var(--header-bg);
+  padding: 3px;
   border-radius: 3px;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
   font-size: 0.7rem;
+  text-align: left;
   word-break: break-word;
 }
 
@@ -225,7 +252,7 @@ h1 {
   text-decoration: line-through;
 }
 
-/* Modal */
+/* Modales & Réglages */
 .modal {
   display: none;
   position: fixed;
@@ -236,12 +263,13 @@ h1 {
   background: rgba(0, 0, 0, 0.85);
   justify-content: center;
   align-items: center;
-  z-index: 10;
+  z-index: 100;
 }
 
 .modal-content {
-  background: #000000;
-  border: 1px solid #ffffff;
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
   padding: 20px;
   border-radius: 8px;
   width: 90%;
@@ -253,16 +281,16 @@ h1 {
   font-size: 1.2rem;
 }
 
-form {
+form, .settings-options {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 input[type="text"], input[type="time"], input[type="number"] {
-  background: #000000;
-  border: 1px solid #ffffff;
-  color: #ffffff;
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
   padding: 8px;
   border-radius: 4px;
 }
@@ -274,8 +302,8 @@ input[type="text"], input[type="time"], input[type="number"] {
 }
 
 .icon-btn {
-  background: #000000;
-  border: 1px solid #444444;
+  background: var(--bg-color);
+  border: 1px solid var(--item-border);
   font-size: 1.2rem;
   padding: 5px 8px;
   border-radius: 4px;
@@ -283,31 +311,33 @@ input[type="text"], input[type="time"], input[type="number"] {
 }
 
 .icon-btn.active {
-  border-color: #ffffff;
-  background-color: #222222;
+  border-color: var(--border-color);
+  background-color: var(--header-bg);
 }
 
 .modal-actions {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  margin-top: 10px;
 }
 
-.btn {
-  padding: 8px 15px;
+.btn, .settings-btn {
+  padding: 10px 15px;
   border-radius: 4px;
-  border: 1px solid #ffffff;
+  border: 1px solid var(--border-color);
   cursor: pointer;
-}
-
-.btn-cancel {
-  background: #000000;
-  color: #ffffff;
+  background: var(--bg-color);
+  color: var(--text-color);
+  font-size: 0.9rem;
 }
 
 .btn-save {
-  background: #ffffff;
-  color: #000000;
+  background: var(--accent-btn-bg);
+  color: var(--accent-btn-text);
   font-weight: bold;
+}
+
+.btn-danger {
+  border-color: #ff4444;
+  color: #ff4444;
 }

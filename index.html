@@ -6,31 +6,36 @@
   <title>Planning Semaine</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="dark-theme">
 
   <header>
-    <h1>Planning Semaine</h1>
+    <div class="header-top">
+      <button id="fullscreenBtn" class="icon-head-btn" title="Plein écran">⛶</button>
+      <h1>Planning Semaine</h1>
+      <button id="settingsBtn" class="icon-head-btn" title="Réglages">⚙️</button>
+    </div>
     <div class="view-toggle">
       <button id="btnList" class="toggle-btn active">Vue Liste</button>
       <button id="btnGrid" class="toggle-btn">Vue Grille</button>
     </div>
   </header>
 
-  <!-- Vue Liste (par défaut) -->
+  <!-- Vue Liste -->
   <main class="week-grid" id="weekGrid"></main>
 
-  <!-- Vue Grille Horaire -->
-  <main class="timetable-view hidden" id="timetableView">
-    <div class="timetable-header" id="timetableHeader">
-      <div class="time-col-header">Heure</div>
-      <!-- Les jours s'affichent ici -->
-    </div>
-    <div class="timetable-body" id="timetableBody">
-      <!-- Les créneaux horaires s'affichent ici -->
-    </div>
+  <!-- Vue Grille Horaire Corrigée -->
+  <main class="timetable-wrapper hidden" id="timetableView">
+    <table class="timetable">
+      <thead id="timetableHeader">
+        <!-- Généré en JS -->
+      </thead>
+      <tbody id="timetableBody">
+        <!-- Généré en JS -->
+      </tbody>
+    </table>
   </main>
 
-  <!-- Modal / Formulaire -->
+  <!-- Modal Nouvelle Tâche -->
   <div class="modal" id="taskModal">
     <div class="modal-content">
       <h2>Nouvelle tâche</h2>
@@ -63,6 +68,32 @@
           <button type="submit" class="btn btn-save">Ajouter</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Modal Réglages -->
+  <div class="modal" id="settingsModal">
+    <div class="modal-content">
+      <h2>Réglages</h2>
+      <div class="settings-options">
+        <button id="themeToggleBtn" class="settings-btn">Passer au Mode Clair</button>
+        <button id="resetWeekBtn" class="settings-btn btn-danger">Réinitialiser la semaine</button>
+      </div>
+      <div class="modal-actions" style="margin-top: 20px;">
+        <button type="button" class="btn btn-cancel" id="closeSettingsBtn">Fermer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Confirmation Réinitialisation -->
+  <div class="modal" id="confirmModal">
+    <div class="modal-content">
+      <h2>Confirmation</h2>
+      <p style="margin-bottom: 20px;">Es-tu sûr de vouloir réinitialiser toutes les tâches de la semaine ?</p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-cancel" id="confirmNoBtn">Non</button>
+        <button type="button" class="btn btn-save" id="confirmYesBtn">Oui</button>
+      </div>
     </div>
   </div>
 
