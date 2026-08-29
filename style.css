@@ -381,7 +381,7 @@ header {
   margin: 4px 0;
 }
 
-/* Vue Grille Horaire */
+/* Vue Grille CSS Grid */
 .timetable-wrapper {
   width: 100%;
   max-height: 80vh;
@@ -392,56 +392,75 @@ header {
   -webkit-overflow-scrolling: touch;
 }
 
-.timetable {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 600px;
-  table-layout: fixed;
+.grid-container {
+  display: grid;
+  grid-template-columns: 65px repeat(7, minmax(110px, 1fr));
+  min-width: 835px;
+  position: relative;
 }
 
-.timetable th, 
-.timetable td {
-  border: 1px solid var(--cell-border);
-  padding: 6px 4px;
-  text-align: center;
-  font-size: 0.75rem;
-  vertical-align: top;
-  height: 42px;
-}
-
-.timetable th {
+.grid-header {
   background: var(--header-bg);
-  font-weight: 600;
-  position: sticky;
-  top: 0;
-  z-index: 2;
-}
-
-.timetable th:first-child, 
-.timetable td:first-child {
-  width: 65px;
-  min-width: 65px;
   color: var(--subtext-color);
   font-weight: 600;
-  background: var(--header-bg);
+  font-size: 0.75rem;
+  text-align: center;
+  padding: 8px 4px;
+  border-bottom: 1px solid var(--border-color);
+  border-right: 1px solid var(--cell-border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
-.grid-task {
+.grid-header:first-child {
+  z-index: 11;
+  left: 0;
+}
+
+.grid-time-slot {
+  background: var(--header-bg);
+  color: var(--subtext-color);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-align: center;
+  padding: 6px 2px;
+  border-bottom: 1px solid var(--cell-border);
+  border-right: 1px solid var(--border-color);
+  height: 44px;
+  box-sizing: border-box;
+}
+
+.grid-day-col {
+  position: relative;
+  display: grid;
+  grid-template-rows: repeat(25, 44px); /* 1 slot "Journée" + 24 slots horaires */
+  border-right: 1px solid var(--cell-border);
+}
+
+.grid-cell-bg {
+  border-bottom: 1px solid var(--cell-border);
+  height: 44px;
+  box-sizing: border-box;
+}
+
+.grid-task-card {
+  position: absolute;
   background: var(--input-bg);
   border-left: 3px solid var(--accent-color);
-  padding: 6px 4px;
   border-radius: 4px;
-  text-align: left;
-  font-size: 0.75rem;
-  word-break: break-word;
-  height: 100%;
+  padding: 4px 6px;
+  font-size: 0.7rem;
   box-sizing: border-box;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
+  z-index: 2;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-.grid-task.completed {
+.grid-task-card.completed {
   border-left-color: var(--completed-color);
   opacity: 0.6;
 }

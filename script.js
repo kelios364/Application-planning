@@ -16,8 +16,7 @@ let selectedIcon = "📝";
 // Éléments DOM
 const weekGrid = document.getElementById("weekGrid");
 const timetableView = document.getElementById("timetableView");
-const timetableHeader = document.getElementById("timetableHeader");
-const timetableBody = document.getElementById("timetableBody");
+const gridContainer = document.getElementById("gridContainer");
 const btnList = document.getElementById("btnList");
 const btnGrid = document.getElementById("btnGrid");
 const fullscreenBtn = document.getElementById("fullscreenBtn");
@@ -61,7 +60,6 @@ function applyTheme(theme) {
 
 // Écouteurs d'événements principaux
 function setupEventListeners() {
-  // Navigation vues
   btnList.addEventListener("click", () => {
     btnList.classList.add("active");
     btnGrid.classList.remove("active");
@@ -77,7 +75,6 @@ function setupEventListeners() {
     renderTimetable();
   });
 
-  // Plein écran
   fullscreenBtn.addEventListener("click", () => {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen().catch(err => console.log(err));
@@ -86,7 +83,6 @@ function setupEventListeners() {
     }
   });
 
-  // Réglages
   settingsBtn.addEventListener("click", () => settingsModal.classList.remove("hidden"));
   closeSettingsModal.addEventListener("click", () => settingsModal.classList.add("hidden"));
 
@@ -105,10 +101,8 @@ function setupEventListeners() {
     }
   });
 
-  // Ajout Tâche
   closeAddTaskModal.addEventListener("click", () => addTaskModal.classList.add("hidden"));
 
-  // Sélection icône
   iconSelector.querySelectorAll(".icon-opt").forEach(btn => {
     btn.addEventListener("click", () => {
       iconSelector.querySelectorAll(".icon-opt").forEach(b => b.classList.remove("active"));
@@ -117,7 +111,6 @@ function setupEventListeners() {
     });
   });
 
-  // Soumission Formulaire Tâche
   addTaskForm.addEventListener("submit", (e) => {
     e.preventDefault();
     const day = taskDayInput.value;
@@ -128,7 +121,6 @@ function setupEventListeners() {
     if (text !== "") {
       addTask(day, text, selectedIcon, startTime, endTime);
       addTaskForm.reset();
-      // Remettre l'icône par défaut sur la première
       iconSelector.querySelectorAll(".icon-opt").forEach(b => b.classList.remove("active"));
       iconSelector.querySelector(".icon-opt").classList.add("active");
       selectedIcon = "📝";
@@ -145,6 +137,13 @@ function escapeHtml(str) {
   return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+// Convertit une heure "HH:MM" en minutes depuis le début de la journée
+function timeToMinutes(timeStr) {
+  if (!timeStr) return 0;
+  const parts = timeStr.split(":");
+  return parseInt(parts[0], 10) * 60 + parseInt(parts[1] || "0", 10);
+}
+
 // --- RENDU VUE LISTE ---
 function renderListView() {
   weekGrid.innerHTML = "";
@@ -153,7 +152,6 @@ function renderListView() {
     const card = document.createElement("div");
     card.className = "day-card";
 
-    // En-tête de carte (Titre à gauche, bouton + à droite)
     const cardHeader = document.createElement("div");
     cardHeader.className = "day-header";
 
@@ -170,7 +168,6 @@ function renderListView() {
     cardHeader.appendChild(addBtn);
     card.appendChild(cardHeader);
 
-    // Liste des tâches
     const taskList = document.createElement("ul");
     taskList.className = "task-list";
 
@@ -216,7 +213,6 @@ function openAddTaskModal(day) {
   addTaskModal.classList.remove("hidden");
 }
 
-// Actions sur les tâches
 function addTask(day, text, icon, startTime, endTime) {
   if (!tasks[day]) tasks[day] = [];
   tasks[day].push({ text, icon, startTime, endTime, completed: false });
@@ -239,94 +235,132 @@ function deleteTask(day, index) {
   renderTimetable();
 }
 
-// --- RENDU VUE GRILLE HORAIRE (00:00 - 23:00 avec fusion de plages) ---
+// --- RENDU VUE GRILLE CSS GRID (Chevauchement & Tri par Durée) ---
 function renderTimetable() {
-  let headerHTML = `<tr><th>Heure</th>`;
+  gridContainer.innerHTML = "";
+
+  // 1. En-tête (Heure + Jours)
+  const headerTime = document.createElement("div");
+  headerTime.className = "grid-header";
+  headerTime.textContent = "Heure";
+  gridContainer.appendChild(headerTime);
+
   days.forEach(day => {
-    headerHTML += `<th>${day.slice(0, 3)}.</th>`;
+    const headerDay = document.createElement("div");
+    headerDay.className = "grid-header";
+    headerDay.textContent = day.slice(0, 3) + ".";
+    gridContainer.appendChild(headerDay);
   });
-  headerHTML += `</tr>`;
-  timetableHeader.innerHTML = headerHTML;
 
-  timetableBody.innerHTML = "";
+  // 2. Colonne d'heures (Journée + 00:00 à 23:00)
+  const timeCol = document.createElement("div");
+  timeCol.style.display = "contents";
 
-  // 1. Ligne "Toute la journée" (sans heure de début)
-  let allDayHTML = `<tr><td>Journée</td>`;
+  const slotAllDay = document.createElement("div");
+  slotAllDay.className = "grid-time-slot";
+  slotAllDay.textContent = "Journée";
+  timeCol.appendChild(slotAllDay);
+
+  for (let h = 0; h <= 23; h++) {
+    const slot = document.createElement("div");
+    slot.className = "grid-time-slot";
+    slot.textContent = h.toString().padStart(2, '0') + ":00";
+    timeCol.appendChild(slot);
+  }
+  gridContainer.appendChild(timeCol);
+
+  // 3. Colonnes par jour
   days.forEach(day => {
-    const noTimeTasks = (tasks[day] || []).filter(t => !t.startTime);
-    let cellContent = noTimeTasks.map(t => 
-      `<div class="grid-task ${t.completed ? 'completed' : ''}">
-        ${t.icon || '📝'} ${escapeHtml(t.text)}
-      </div>`
-    ).join("");
-    allDayHTML += `<td>${cellContent}</td>`;
-  });
-  allDayHTML += `</tr>`;
-  timetableBody.innerHTML += allDayHTML;
+    const dayCol = document.createElement("div");
+    dayCol.className = "grid-day-col";
 
-  // 2. Grille horaire 00:00 - 23:00
-  // Suivi des cellules recouvertes par rowspan pour chaque jour
-  const skipSlots = {};
-  days.forEach(day => { skipSlots[day] = {}; });
+    // Fond des cases
+    for (let i = 0; i < 25; i++) {
+      const cellBg = document.createElement("div");
+      cellBg.className = "grid-cell-bg";
+      dayCol.appendChild(cellBg);
+    }
 
-  for (let hour = 0; hour <= 23; hour++) {
-    const hourStr = hour.toString().padStart(2, '0') + ":00";
-    let rowHTML = `<tr><td>${hourStr}</td>`;
-
-    days.forEach(day => {
-      // Si la case de cette heure est déjà fusionnée par une tâche supérieure
-      if (skipSlots[day][hour]) {
-        return;
-      }
-
-      // Tâches commençant exactement à cette heure
-      const startingTasks = (tasks[day] || []).filter(t => {
-        if (!t.startTime) return false;
-        const taskStartHour = parseInt(t.startTime.split(":")[0], 10);
-        return taskStartHour === hour;
-      });
-
-      if (startingTasks.length > 0) {
-        // Pour gérer au mieux l'affichage, on prend l'étendue max parmi les tâches démarrant à cette heure
-        let maxSpan = 1;
-        let contentHTML = "";
-
-        startingTasks.forEach(t => {
-          let span = 1;
-          if (t.endTime) {
-            const endHour = parseInt(t.endTime.split(":")[0], 10);
-            const endMin = parseInt(t.endTime.split(":")[1] || "0", 10);
-            // Si l'heure de fin a des minutes > 0 (ex: 17:30), on couvre jusqu'à l'heure suivante inclus
-            let targetEnd = endMin > 0 ? endHour + 1 : endHour;
-            if (targetEnd > hour) {
-              span = Math.min(targetEnd - hour, 24 - hour);
-            }
-          }
-          if (span > maxSpan) maxSpan = span;
-
-          let rangeStr = t.startTime + (t.endTime ? ` - ${t.endTime}` : '');
-          contentHTML += `
-            <div class="grid-task ${t.completed ? 'completed' : ''}">
-              <span>${t.icon || '📝'} ${escapeHtml(t.text)}</span>
-              <span class="grid-task-time">${rangeStr}</span>
-            </div>
-          `;
-        });
-
-        // Marquer les heures suivantes comme fusionnées
-        for (let s = 1; s < maxSpan; s++) {
-          if (hour + s <= 23) {
-            skipSlots[day][hour + s] = true;
-          }
-        }
-
-        rowHTML += `<td rowspan="${maxSpan}">${contentHTML}</td>`;
-      } else {
-        rowHTML += `<td></td>`;
-      }
+    const dayTasks = tasks[day] || [];
+    
+    // Tâches "Journée entier" (sans heure de début)
+    const noTimeTasks = dayTasks.filter(t => !t.startTime);
+    noTimeTasks.forEach((t, idx) => {
+      const taskCard = document.createElement("div");
+      taskCard.className = `grid-task-card ${t.completed ? 'completed' : ''}`;
+      taskCard.style.top = `2px`;
+      taskCard.style.height = `40px`;
+      taskCard.style.left = `${(idx * 20)}%`;
+      taskCard.style.width = `calc(100% - ${idx * 20}px)`;
+      taskCard.innerHTML = `<span>${t.icon || '📝'} ${escapeHtml(t.text)}</span>`;
+      dayCol.appendChild(taskCard);
     });
 
-    rowHTML += `</tr>`;
-    timetableBody.innerHTML += rowHTML;
-  }
+    // Tâches Horodatées
+    const timedTasks = dayTasks
+      .filter(t => t.startTime)
+      .map(t => {
+        const startMin = timeToMinutes(t.startTime);
+        let endMin = t.endTime ? timeToMinutes(t.endTime) : startMin + 60;
+        if (endMin <= startMin) endMin = startMin + 60; // minimum 1h d'affichage
+        const duration = endMin - startMin;
+        return { ...t, startMin, endMin, duration };
+      });
+
+    // TRI CRUCIAL : Tri par durée décroissante (la plus longue en premier = plus à gauche)
+    timedTasks.sort((a, b) => b.duration - a.duration || a.startMin - b.startMin);
+
+    // Calcul des chevauchements et positions d'affichage
+    const placedTasks = [];
+
+    timedTasks.forEach(task => {
+      // Trouver les tâches déjà placées qui se chevauchent avec la tâche actuelle
+      const overlapping = placedTasks.filter(p => 
+        (task.startMin < p.endMin && task.endMin > p.startMin)
+      );
+
+      // Calculer la colonne disponible (colIndex)
+      let colIndex = 0;
+      const occupiedCols = overlapping.map(o => o.colIndex);
+      while (occupiedCols.includes(colIndex)) {
+        colIndex++;
+      }
+
+      task.colIndex = colIndex;
+      placedTasks.push(task);
+    });
+
+    // Calcul du nombre de colonnes simultanées maximales pour ajuster la largeur
+    placedTasks.forEach(task => {
+      const overlapping = placedTasks.filter(p => 
+        (task.startMin < p.endMin && task.endMin > p.startMin)
+      );
+      const totalCols = Math.max(...overlapping.map(o => o.colIndex)) + 1;
+
+      // Positionnement en pixels (44px par tranche d'heure + décalage initial de 44px pour la case "Journée")
+      const topPx = 44 + (task.startMin / 60) * 44;
+      const heightPx = (task.duration / 60) * 44;
+      
+      const widthPercent = 100 / totalCols;
+      const leftPercent = task.colIndex * widthPercent;
+
+      const taskCard = document.createElement("div");
+      taskCard.className = `grid-task-card ${task.completed ? 'completed' : ''}`;
+      taskCard.style.top = `${topPx + 2}px`;
+      taskCard.style.height = `${heightPx - 4}px`;
+      taskCard.style.left = `${leftPercent}%`;
+      taskCard.style.width = `${widthPercent}%`;
+
+      let timeStr = task.startTime + (task.endTime ? ` - ${task.endTime}` : '');
+
+      taskCard.innerHTML = `
+        <span>${task.icon || '📝'} ${escapeHtml(task.text)}</span>
+        <span class="grid-task-time">${timeStr}</span>
+      `;
+
+      dayCol.appendChild(taskCard);
+    });
+
+    gridContainer.appendChild(dayCol);
+  });
 }
