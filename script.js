@@ -238,7 +238,7 @@ function deleteTask(day, index) {
 function renderTimetable() {
   gridContainer.innerHTML = "";
 
-  // 1. En-têtes
+  // 1. En-têtes (Heure + 7 jours)
   const headerTime = document.createElement("div");
   headerTime.className = "grid-header";
   headerTime.textContent = "Heure";
@@ -251,19 +251,24 @@ function renderTimetable() {
     gridContainer.appendChild(headerDay);
   });
 
-  // 2. Colonne d'heures (00:00 à 23:00)
+  // 2. Colonne unique d'heures à gauche (Colonne 1, lignes 2 à 26)
+  const timeCol = document.createElement("div");
+  timeCol.className = "grid-time-column";
+
   const timeLabels = ["Journée", ...Array.from({ length: 24 }, (_, i) => `${i.toString().padStart(2, '0')}:00`)];
   timeLabels.forEach(label => {
     const slot = document.createElement("div");
     slot.className = "grid-time-slot";
     slot.textContent = label;
-    gridContainer.appendChild(slot);
+    timeCol.appendChild(slot);
   });
+  gridContainer.appendChild(timeCol);
 
-  // 3. Colonnes des jours
-  days.forEach(day => {
+  // 3. Colonnes des jours (Colonnes 2 à 8)
+  days.forEach((day, dayIndex) => {
     const dayCol = document.createElement("div");
     dayCol.className = "grid-day-col";
+    dayCol.style.gridColumn = `${dayIndex + 2}`;
 
     for (let i = 0; i < 25; i++) {
       const cellBg = document.createElement("div");
@@ -273,7 +278,7 @@ function renderTimetable() {
 
     const dayTasks = tasks[day] || [];
     
-    // Tâches "Journée entier"
+    // Tâches "Toute la journée"
     const noTimeTasks = dayTasks.filter(t => !t.startTime);
     noTimeTasks.forEach((t, idx) => {
       const taskCard = document.createElement("div");
@@ -297,10 +302,8 @@ function renderTimetable() {
         return { ...t, startMin, endMin, duration };
       });
 
-    // Tri : Tâche la plus longue en premier (affichée le plus à gauche)
     timedTasks.sort((a, b) => b.duration - a.duration || a.startMin - b.startMin);
 
-    // Calcul des chevauchements
     const placedTasks = [];
     timedTasks.forEach(task => {
       const overlapping = placedTasks.filter(p => (task.startMin < p.endMin && task.endMin > p.startMin));
@@ -313,7 +316,6 @@ function renderTimetable() {
       placedTasks.push(task);
     });
 
-    // Placement final des cartes
     placedTasks.forEach(task => {
       const overlapping = placedTasks.filter(p => (task.startMin < p.endMin && task.endMin > p.startMin));
       const totalCols = Math.max(...overlapping.map(o => o.colIndex)) + 1;
